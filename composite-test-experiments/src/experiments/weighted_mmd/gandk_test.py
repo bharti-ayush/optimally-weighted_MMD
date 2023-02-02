@@ -18,7 +18,8 @@ from mmd_ksd.distributions.gandk import (
     run_opt,
     vstat_loss,
 )
-from mmd_ksd.jax_utils import load_or_run, tree_concatenate
+from mmd_ksd.jax_utils import tree_concatenate
+from mmd_ksd.results_cache import load_or_run
 
 SEED = 81238410
 M = 100

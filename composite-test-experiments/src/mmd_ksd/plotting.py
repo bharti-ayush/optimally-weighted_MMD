@@ -1,3 +1,6 @@
+"""Contains utilities for configuring matplotlib for making nice plots for papers."""
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 
 # These dimensions are based on the ICML layout.
@@ -23,6 +26,9 @@ def configure_matplotlib() -> None:
 
 
 def save_fig(name: str, **kwargs) -> None:
+    plots_dir = Path("plots")
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
     plt.tight_layout(**kwargs)
     plt.savefig(f"plots/{name}.png", dpi=200)
     plt.savefig(f"plots/{name}.pdf", bbox_inches="tight", transparent=True)

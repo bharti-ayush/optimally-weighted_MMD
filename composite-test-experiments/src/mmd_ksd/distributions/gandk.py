@@ -1,6 +1,7 @@
+"""Contains the G and K model and the associated gradient-based optimizer config."""
 from abc import ABC
 from dataclasses import dataclass
-from typing import Callable, NamedTuple, Protocol, Tuple
+from typing import NamedTuple, Protocol, Tuple
 
 import chex
 import jax
@@ -89,11 +90,12 @@ class GAndK(SampleableDist[GAndKParams, Tuple[Array, Array]]):
     def sample_initial_params(rng: KeyArray) -> GAndKParams:
         rngs = jax.random.split(rng, num=5)
         l, u = GAndK.get_prior_range()
+        # We do not learn k and keep it fixed to the true value. Thus, do not specify it
+        # here so it's initialized to the true value.
         return GAndKParams(
             A=jax.random.uniform(rngs[0], minval=l.A, maxval=u.A),
             B=jax.random.uniform(rngs[1], minval=l.B, maxval=u.B),
             g=jax.random.uniform(rngs[2], minval=l.g, maxval=u.g),
-            # k=jax.random.uniform(rngs[3], minval=0.001, maxval=1.0),
             rho=jax.random.uniform(rngs[4], minval=l.rho, maxval=u.rho),
         )
 

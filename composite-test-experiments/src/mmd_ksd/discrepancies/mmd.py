@@ -24,27 +24,12 @@ def mmd_u_stat(kernel: Kernel, xs: ndarray, ys: ndarray) -> ndarray:
     return term1 + term2 + term3
 
 
-def agg_mmd_u_stat(kernels: Sequence[Kernel], xs: ndarray, ys: ndarray) -> ndarray:
-    return jnp.max(jnp.array([mmd_u_stat(k, xs, ys) for k in kernels]))
-
-
-def mmd_v_stat(
-    kernel: Kernel, xs: ndarray, ys: ndarray, include_yy: bool = True
-) -> ndarray:
-    """Computes the v-statistic estimate of MMD(xs,ys).
-
-    :param include_yy: When False, does not compute or include the K_yy term. This may
-                       be useful when doing optimisation, where the gradient wrt the
-                       model parameters does not depend on the K_yy.
-    """
+def mmd_v_stat(kernel: Kernel, xs: ndarray, ys: ndarray) -> ndarray:
     K_xx = gram(kernel, xs, xs)
     K_xy = gram(kernel, xs, ys)
     partial_mmd = K_xx.mean() - 2 * K_xy.mean()
-    if include_yy:
-        K_yy = gram(kernel, ys, ys)
-        return partial_mmd + K_yy.mean()
-    else:
-        return partial_mmd
+    K_yy = gram(kernel, ys, ys)
+    return partial_mmd + K_yy.mean()
 
 
 def mmd_h_gram(kernel: Kernel, xs: Array, ys: Array) -> Array:
@@ -62,17 +47,18 @@ def mmd_h(k: Kernel, z1: Array, z2: Array) -> Array:
 
 
 def weighted_mmd_v_stat(
-    kernel: Kernel, xs: ndarray, ys: ndarray, ws: ndarray, include_yy: bool = True
+    kernel: Kernel, xs: ndarray, ys: ndarray, ws: ndarray
 ) -> ndarray:
+    """Computes the weighted V-statistic estimate of MMD(xs, ys).
+
+    Each sample in xs is weighted by the corresponding weight in ws.
+    """
     K_xx = gram(kernel, xs, xs)
     K_xy = gram(kernel, xs, ys)
     term1 = (ws.transpose() @ K_xx) @ ws
     term2 = -2 * (ws.T @ K_xy).mean()
-    if include_yy:
-        K_yy = gram(kernel, ys, ys)
-        return term1 + term2 + K_yy.mean()
-    else:
-        return term1 + term2
+    K_yy = gram(kernel, ys, ys)
+    return term1 + term2 + K_yy.mean()
 
 
 def compute_optimal_weights(
@@ -80,7 +66,12 @@ def compute_optimal_weights(
     u_space_kernel: GaussianKernel,
     u_distribution: Literal["uniform", "gaussian"],
 ) -> ndarray:
-    """Computes the optimal weights when the latent variables are uniform on [0,1]."""
+    """Computes the optimal weights for the weighted MMD.
+
+    :param u_distribution: distribution from which the us were sampled.
+                           "uniform" indicates a uniform distribution on [0,1]
+                           "gaussian" indicates a standard gaussian
+    """
     if not isinstance(u_space_kernel, GaussianKernel):
         raise NotImplementedError(
             "Optimal weight computation only implemented for Gaussian kernels"

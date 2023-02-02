@@ -17,49 +17,6 @@ from mmd_ksd.discrepancies.mmd import (
 from mmd_ksd.distributions import Gaussian
 
 
-def test__mmd_v_stat__param_gradient_equal_regardless_yy_included():
-    rng = PRNGKey(seed=9088999)
-    rng1, rng2 = jax.random.split(rng, num=2)
-    ys = Gaussian(loc=0.0, scale=0.0).sample(rng1, n=10)
-    kernel = GaussianKernel(l=0.5)
-
-    def sample(mean: Array) -> Array:
-        return Gaussian(loc=mean, scale=1.0).sample(rng2, n=5)
-
-    def loss_with_yy(mean: Array) -> Array:
-        return mmd_v_stat(kernel, sample(mean), ys, include_yy=True)
-
-    def loss_without_yy(mean: Array) -> Array:
-        return mmd_v_stat(kernel, sample(mean), ys, include_yy=False)
-
-    g_with_yy = grad(loss_with_yy)(1.0)
-    g_without_yy = grad(loss_without_yy)(1.0)
-
-    assert jnp.allclose(g_without_yy, g_with_yy)
-
-
-def test__weighted_mmd_v_stat__param_gradient_equal_regardless_yy_included():
-    rng = PRNGKey(seed=9088999)
-    rng1, rng2, rng3 = jax.random.split(rng, num=3)
-    ys = Gaussian(loc=0.0, scale=0.0).sample(rng1, n=10)
-    ws = uniform(rng3, shape=(5,))
-    kernel = GaussianKernel(l=0.5)
-
-    def sample(mean: Array) -> Array:
-        return Gaussian(loc=mean, scale=1.0).sample(rng2, n=5)
-
-    def loss_with_yy(mean: Array) -> Array:
-        return weighted_mmd_v_stat(kernel, sample(mean), ys, ws, include_yy=True)
-
-    def loss_without_yy(mean: Array) -> Array:
-        return weighted_mmd_v_stat(kernel, sample(mean), ys, ws, include_yy=False)
-
-    g_with_yy = grad(loss_with_yy)(1.0)
-    g_without_yy = grad(loss_without_yy)(1.0)
-
-    assert jnp.allclose(g_without_yy, g_with_yy)
-
-
 def test__mmd_h_gram__has_same_mean_as_mmd_v_stat():
     rng = PRNGKey(seed=4234234)
     rng, rng_input = jax.random.split(rng)

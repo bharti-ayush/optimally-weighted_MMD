@@ -17,19 +17,6 @@ P = TypeVar("P")
 LossFunction = Callable[[KeyArray, P], ndarray]
 
 
-def sampling_optimizer(
-    rng: KeyArray,
-    loss: LossFunction,
-    sample_theta_init: Callable[[KeyArray], P],
-    n_samples: int,
-) -> P:
-    rng, *rng_inputs = jax.random.split(rng, num=n_samples + 1)
-    params = vmap(sample_theta_init)(jnp.array(rng_inputs))
-    rng_inputs2 = jax.random.split(rng, n_samples)
-    losses = vmap(loss)(rng_inputs2, params)
-    return _index_params(params, losses.argsort()[0])
-
-
 def random_restart_optimizer(
     rng: KeyArray,
     optimizer: GradientTransformation,

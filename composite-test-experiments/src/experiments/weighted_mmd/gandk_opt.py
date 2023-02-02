@@ -17,7 +17,8 @@ from mmd_ksd.distributions.gandk import (
     run_opt,
     vstat_loss,
 )
-from mmd_ksd.jax_utils import batch_vmap, load_or_run
+from mmd_ksd.jax_utils import batch_vmap
+from mmd_ksd.results_cache import load_or_run
 
 M = 50
 N = 1000
@@ -45,9 +46,9 @@ def main() -> None:
     default_params = asdict(GAndKParams())
     plotting.configure_matplotlib()
     fig, axes_array = plt.subplots(
-        nrows=2,
-        ncols=2,
-        figsize=(plotting.ONE_COL_WIDTH, plotting.ONE_COL_WIDTH * 0.75),
+        nrows=1,
+        ncols=4,
+        figsize=(plotting.TWO_COL_WIDTH, plotting.ONE_COL_WIDTH * 0.4),
     )
     axes = {
         param_name: ax for param_name, ax in zip(PARAMS_TO_PLOT, axes_array.flatten())
@@ -71,7 +72,7 @@ def main() -> None:
             f"vstat={len(vstat_outliers)} {vstat_outliers}"
         )
         _, bins = jnp.histogram(jnp.concatenate([ow_inliers, vstat_inliers]), bins=30)
-        hist_params = {"bins": bins, "alpha": 0.2}
+        hist_params = {"bins": bins, "alpha": 0.4}
         ax.hist(vstat_inliers, label="V-stat", **hist_params)
         ax.hist(ow_inliers, label="OW (ours)", **hist_params)
 
